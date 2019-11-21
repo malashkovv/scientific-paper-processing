@@ -48,6 +48,18 @@ services:
   driver:
     extends:
       service: spark
+  notebook:
+    build:
+      context: ./analysis
+      dockerfile: Dockerfile
+    command: spark-jupyter
+    environment:
+      - SPARK_MASTER_HOST=spark-master
+    ports:
+      - 7000:7000
+    volumes:
+      - ./analysis:/notebooks
+      - ./data:/data
   spark-master:
     extends:
       service: spark
