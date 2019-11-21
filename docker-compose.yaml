@@ -41,6 +41,14 @@ services:
       - 'kafka2_data:/bitnami'
     depends_on:
       - zookeeper
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    ports:
+      - 8050:8050
+    volumes:
+      - ./data:/data
   spark:
     image: vmalashkov/apache-spark
     volumes:
@@ -48,6 +56,22 @@ services:
   driver:
     extends:
       service: spark
+  etl:
+    build:
+      context: ./
+      dockerfile: ./etl/Dockerfile
+    environment:
+      - SPARK_MASTER_HOST=spark-master
+    volumes:
+      - ./data:/data
+  ml:
+    build:
+      context: ./
+      dockerfile: ./ml/Dockerfile
+    environment:
+      - SPARK_MASTER_HOST=spark-master
+    volumes:
+      - ./data:/data
   notebook:
     build:
       context: ./analysis
