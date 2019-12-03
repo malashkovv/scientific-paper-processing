@@ -1,0 +1,125 @@
+version: '2'
+services:
+  scrapper:
+    build:
+      context: ./scrapper
+      dockerfile: Dockerfile
+  scrapper1:
+    extends:
+      service: scrapper
+    environment:
+      - BIORXIV_CATEGORY=genetics,neuroscience,bioinformatics
+  scrapper2:
+    extends:
+      service: scrapper
+    environment:
+      - BIORXIV_CATEGORY=pharmacology-and-toxicology,cell-biology,cancer-biology
+  zookeeper:
+    image: 'bitnami/zookeeper:3'
+    ports:
+      - '2181:2181'
+    volumes:
+      - 'zookeeper_data:/bitnami'
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+  kafka:
+    image: 'bitnami/kafka:2'
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+  kafka1:
+    extends:
+      service: kafka
+    volumes:
+      - 'kafka1_data:/bitnami'
+    depends_on:
+      - zookeeper
+  kafka2:
+    extends:
+      service: kafka
+    volumes:
+      - 'kafka2_data:/bitnami'
+    depends_on:
+      - zookeeper
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    ports:
+      - 8050:8050
+    volumes:
+      - ./data:/data
+  spark:
+    image: vmalashkov/apache-spark
+    volumes:
+      - ./data:/data
+  driver:
+    extends:
+      service: spark
+  etl:
+    build:
+      context: ./
+      dockerfile: ./etl/Dockerfile
+    environment:
+      - SPARK_MASTER_HOST=spark-master
+    volumes:
+      - ./data:/data
+  ml:
+    build:
+      context: ./
+      dockerfile: ./ml/Dockerfile
+    environment:
+      - SPARK_MASTER_HOST=spark-master
+    volumes:
+      - ./data:/data
+  notebook:
+    build:
+      context: ./analysis
+      dockerfile: Dockerfile
+    command: spark-jupyter
+    environment:
+      - SPARK_MASTER_HOST=spark-master
+    ports:
+      - 7000:7000
+    volumes:
+      - ./analysis:/notebooks
+      - ./data:/data
+  spark-master:
+    extends:
+      service: spark
+    depends_on:
+      - spark-worker1
+      - spark-worker2
+    command: master
+    ports:
+      - 8080:8080
+      - 7077:7077
+  spark-worker1:
+    extends:
+      service: spark
+    command: worker
+    environment:
+      - SPARK_WORKER_WEBUI_PORT=8081
+      - SPARK_WORKER_PORT=7078
+      - SPARK_MASTER_HOST=spark-master
+    ports:
+      - 8081:8081
+      - 7078:7078
+  spark-worker2:
+    extends:
+      service: spark
+    command: worker
+    environment:
+      - SPARK_WORKER_WEBUI_PORT=8082
+      - SPARK_WORKER_PORT=7079
+      - SPARK_MASTER_HOST=spark-master
+    ports:
+      - 8082:8082
+      - 7079:7079
+volumes:
+  zookeeper_data:
+    driver: local
+  kafka1_data:
+    driver: local
+  kafka2_data:
+    driver: local
