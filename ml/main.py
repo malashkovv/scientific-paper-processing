@@ -1,10 +1,8 @@
-import os
-from contextlib import contextmanager
-
 import numpy as np
 import pandas as pd
 from pyspark.ml.classification import RandomForestClassifier, OneVsRest
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
+from pyspark.sql import functions as f
 
 from sklearn.manifold import TSNE
 
@@ -62,6 +60,9 @@ def tsne(embeddings, size=10, components=3):
 if __name__ == '__main__':
     with spark_session() as spark:
         df = spark.read.json("/data/papers")
+
+        categories = df.groupBy("category").agg(f.count("*").alias("cnt")).toPandas()
+        categories.to_json('/data/categories_stats.json')
 
         (training, test) = df.randomSplit([0.7, 0.3])
 
