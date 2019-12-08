@@ -15,15 +15,15 @@ services:
     environment:
       - BIORXIV_CATEGORY=pharmacology-and-toxicology,cell-biology,cancer-biology
   zookeeper:
-    image: 'bitnami/zookeeper:3'
+    image: bitnami/zookeeper:3
     ports:
       - '2181:2181'
     volumes:
-      - 'zookeeper_data:/bitnami'
+      - zookeeper_data:/bitnami
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
   kafka:
-    image: 'bitnami/kafka:2'
+    image: bitnami/kafka:2
     environment:
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
       - ALLOW_PLAINTEXT_LISTENER=yes
@@ -31,20 +31,20 @@ services:
     extends:
       service: kafka
     volumes:
-      - 'kafka1_data:/bitnami'
+      - kafka1_data:/bitnami
     depends_on:
       - zookeeper
   kafka2:
     extends:
       service: kafka
     volumes:
-      - 'kafka2_data:/bitnami'
+      - kafka2_data:/bitnami
     depends_on:
       - zookeeper
   dashboard:
     build:
-      context: ./dashboard
-      dockerfile: Dockerfile
+      context: ./
+      dockerfile: ./dashboard/Dockerfile
     ports:
       - 8050:8050
     volumes:
@@ -64,10 +64,20 @@ services:
       - SPARK_MASTER_HOST=spark-master
     volumes:
       - ./data:/data
-  ml:
+  classifier_training:
     build:
       context: ./
-      dockerfile: ./ml/Dockerfile
+      dockerfile: analytics/Dockerfile
+    command: "python /usr/src/app/classifier_training.py"
+    environment:
+      - SPARK_MASTER_HOST=spark-master
+    volumes:
+      - ./data:/data
+  reporting:
+    build:
+      context: ./
+      dockerfile: analytics/Dockerfile
+    command: "python /usr/src/app/reporting.py"
     environment:
       - SPARK_MASTER_HOST=spark-master
     volumes:
@@ -116,7 +126,19 @@ services:
     ports:
       - 8082:8082
       - 7079:7079
+  reporting-db:
+    image: postgres:11
+    environment:
+      - POSTGRES_USER=login
+      - POSTGRES_PASSWORD=pwd
+      - POSTGRES_DB=reporting
+    ports:
+      - 5432:5432
+    volumes:
+      - reporting_data:/var/lib/postgresql/data
 volumes:
+  reporting_data:
+    driver: local
   zookeeper_data:
     driver: local
   kafka1_data:

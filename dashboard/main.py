@@ -6,20 +6,65 @@ import plotly.graph_objs as go
 
 import pandas as pd
 
-embeddings = pd.read_json("/data/embeddings_reduced.json")
-categories = pd.read_json("/data/categories_stats.json")
+from dash.dependencies import Input, Output, State
 
-categories_code = embeddings[['category', 'category_code']].drop_duplicates()
-categories = categories.join(categories_code.set_index('category'), on='category')
+from core.reporting_utils import create_reporting_engine
+
+sql_engine = create_reporting_engine()
+
+embeddings = pd.read_sql_table(
+    table_name="embeddings",
+    con=sql_engine
+)
 
 external_stylesheets = [dbc.themes.BOOTSTRAP]
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
-categories_bar = dcc.Graph(
-    id='categories',
-    style={'height': '100%'},
-    figure={
+
+def create_main_layout():
+    categories_bar = dcc.Graph(
+        id='categories_counts',
+        style={'height': '100%'}
+    )
+
+    categories_embeddings_scatter = dcc.Graph(
+        id='embeddings',
+        style={'height': '100%', 'width': '100%'}
+    )
+    return html.Div(children=[
+        dcc.Interval(interval=60 * 1000, id="interval"),
+        dbc.Row([
+            dbc.Col([categories_bar], width=4),
+            dbc.Col([categories_embeddings_scatter], width=8)
+        ], style={'height': '90vh'})
+    ])
+
+
+app.layout = create_main_layout()
+
+app.css.append_css({
+    'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'
+})
+
+
+@app.callback(
+    Output("categories_counts", "figure"),
+    [Input("interval", "n_intervals")],
+)
+def update_categories_counts(value):
+    app.logger.info("Pulling categories counts.")
+    embeddings = pd.read_sql_table(
+        table_name="embeddings",
+        con=sql_engine
+    )
+    categories = pd.read_sql_table(
+        table_name="categories_counts",
+        con=sql_engine
+    )
+    categories_code = embeddings[['category', 'category_code']].drop_duplicates()
+    categories = categories.join(categories_code.set_index('category'), on='category')
+    return {
         'data': [go.Bar(
             x=categories.category,
             y=categories.cnt,
@@ -29,12 +74,19 @@ categories_bar = dcc.Graph(
             'title': "Number of papers by category"
         }
     }
-)
 
-categories_embeddings_scatter = dcc.Graph(
-    id='scatter',
-    style={'height': '100%', 'width': '100%'},
-    figure={
+
+@app.callback(
+    Output("embeddings", "figure"),
+    [Input("interval", "n_intervals")],
+)
+def update_embeddings(value):
+    app.logger.info("Pulling embeddings.")
+    embeddings = pd.read_sql_table(
+        table_name="embeddings",
+        con=sql_engine
+    )
+    return {
         'data': [go.Scatter3d(
             x=embeddings['embedding_reduced_sample'].map(lambda x: x[0]).to_numpy(),
             y=embeddings['embedding_reduced_sample'].map(lambda x: x[1]).to_numpy(),
@@ -47,18 +99,7 @@ categories_embeddings_scatter = dcc.Graph(
             'title': "Paper's abstract embeddings by category"
         }
     }
-)
 
-app.layout = html.Div(children=[
-    dbc.Row([
-        dbc.Col([categories_bar], width=4),
-        dbc.Col([categories_embeddings_scatter], width=8)
-    ], style={'height': '90vh'})
-])
-
-app.css.append_css({
-    'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'
-})
 
 if __name__ == '__main__':
     app.run_server(host='0.0.0.0')
