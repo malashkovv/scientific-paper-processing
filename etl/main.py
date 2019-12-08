@@ -36,6 +36,7 @@ with spark_session(config) as spark:
         .withColumn("parsed", f.col("blob.parsed"))\
         .withColumn("posted_year", f.year("posted"))\
         .withColumn("posted_month", f.month("posted"))\
+        .withColumn("abstract_distilled", f.regexp_replace(f.col("abstract", "<[^<]+>", "")))\
         .drop("blob")
 
     write_stream = exploded_df.writeStream \

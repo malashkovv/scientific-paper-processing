@@ -37,13 +37,20 @@ class BiorXivSpider(scrapy.Spider):
 
     def parse_content(self, response):
         item = BiorXivPage()
-        raw_abstract = response.xpath('//div[has-class("abstract")]').get()
-        item['abstract'] = re.sub("<[^<]+>", " ", raw_abstract)
+        item['abstract'] = self.parse_abstract(response)
         item['path'] = urlparse(response.url).path
-        raw_date = response.xpath('//div[contains(text(),"Posted")]/text()').get().strip().split('\xa0')[1].strip('.')
-        item['posted'] = datetime.strptime(raw_date, "%B %d, %Y").date().isoformat()
-        item['doi'] = urlparse(
-            response.xpath('//span[has-class("highwire-cite-metadata-doi")]/text()').get().strip()).path
+        item['posted'] = self.parse_posted(response)
+        item['doi'] = self.parse_doi(response)
         item['category'] = response.meta['category']
         item['parsed'] = datetime.utcnow().isoformat()
         yield item
+
+    def parse_posted(self, response):
+        raw_date = response.xpath('//div[contains(text(),"Posted")]/text()').get().strip().split('\xa0')[1].strip('.')
+        return datetime.strptime(raw_date, "%B %d, %Y").date().isoformat()
+
+    def parse_doi(self, response):
+        return urlparse(response.xpath('//span[has-class("highwire-cite-metadata-doi")]/text()').get().strip()).path
+
+    def parse_abstract(self, response):
+        return response.xpath('//div[has-class("abstract")]').get()
