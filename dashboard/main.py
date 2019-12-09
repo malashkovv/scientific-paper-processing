@@ -38,7 +38,10 @@ def create_main_layout():
     return html.Div(children=[
         dcc.Interval(interval=60 * 1000, id="interval"),
         dbc.Row([
-            dbc.Col([categories_bar, years_bar], width=4),
+            dbc.Col([
+                dbc.Row([categories_bar], style={'height': '50vh'}),
+                dbc.Row([years_bar], style={'height': '50vh'})
+            ], width=4),
             dbc.Col([categories_embeddings_scatter], width=8)
         ], style={'height': '90vh'})
     ])
@@ -91,7 +94,7 @@ def update_year_counts(value):
     )
     return {
         'data': [go.Bar(
-            x=years.year,
+            x=years.posted_year,
             y=years.cnt
         )],
         'layout': {
