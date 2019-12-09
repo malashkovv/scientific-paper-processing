@@ -64,7 +64,7 @@ services:
       - SPARK_MASTER_HOST=spark-master
     volumes:
       - ./data:/data
-  classifier_training:
+  classifier-training:
     build:
       context: ./
       dockerfile: analytics/Dockerfile

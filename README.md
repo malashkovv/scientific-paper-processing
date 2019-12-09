@@ -44,14 +44,21 @@ You need to make sure that Spark cluster is running
 docker-compose up -d spark-master spark-worker1 spark-worker2
 ```
 
-Then run
+Then run 
 ```bash
-docker-compose run ml
+docker-compose run classifier-training
+```
+to train classification model.
+
+
+In order to get analytics data run 
+```bash
+docker-compose run reporting
 ```
 
 # Dashboard
 
-Run 
+In order to boot up dashboard run 
 
 ```bash
 docker-compose up -d dashboard
