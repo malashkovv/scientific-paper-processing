@@ -15,7 +15,7 @@ EXTENSIONS = {
 }
 
 KAFKA_EXPORT_ENABLED = True
-KAFKA_BROKERS = os.environ.get("KAFKA_BROKERS", 'kafka1:9092,kafka2:9092').splot(',')
+KAFKA_BROKERS = os.environ.get("KAFKA_BROKERS", 'kafka1:9092,kafka2:9092').split(',')
 KAFKA_TOPIC = os.environ.get("KAFKA_TOPIC", 'science-papers')
 
 BIORXIV_CATEGORIES = 'pharmacology-and-toxicology,cell-biology,cancer-biology,genetics,neuroscience,bioinformatics'.split(',')
