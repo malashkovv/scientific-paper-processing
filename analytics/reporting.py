@@ -1,8 +1,5 @@
 import os
 
-from sklearn.manifold import TSNE
-
-from core.log import logger
 from core.spark_utils import spark_session
 from core.reporting_utils import create_reporting_engine
 from pyspark.sql import functions as f
@@ -11,7 +8,7 @@ from pyspark.sql import functions as f
 if __name__ == '__main__':
     sql_engine = create_reporting_engine()
     with spark_session() as spark:
-        df = spark.read.json("/data/papers") \
+        df = spark.read.json(os.environ.get("PAPERS_PATH", "/data/papers")) \
             .select("abstract_distilled", "category", "posted") \
             .withColumnRenamed("abstract_distilled", "abstract")
 

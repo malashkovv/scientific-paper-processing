@@ -1,3 +1,4 @@
+import os
 import operator
 import json
 
@@ -75,6 +76,7 @@ def create_pipeline():
 
     return tvs
 
+
 def tsne(embeddings, size=10, components=3):
     embeddings = np.vstack(embeddings.map(lambda x: x.toArray().reshape(size, )))
     tsne = TSNE(n_components=components)
@@ -89,7 +91,7 @@ config = {
 if __name__ == '__main__':
     sql_engine = create_reporting_engine()
     with spark_session(config) as spark:
-        df = spark.read.json("/data/papers")\
+        df = spark.read.json(os.environ.get("PAPERS_PATH", "/data/papers"))\
             .select("abstract_distilled", "category")\
             .withColumnRenamed("abstract_distilled", "abstract")\
             .repartition(8)
