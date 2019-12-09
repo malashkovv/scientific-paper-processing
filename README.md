@@ -1,5 +1,14 @@
 # scientific-paper-processing
 
+# Build
+
+You need to have Docker and docker-compose on your computer in order to run.
+
+Then simply do 
+```bash
+docker-compose build
+```
+
 # Scrapping and streaming
 
 ## Kafka setup
