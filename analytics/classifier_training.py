@@ -1,5 +1,6 @@
 from pyspark.ml.classification import RandomForestClassifier, OneVsRest
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
+from pyspark.ml.tuning import TrainValidationSplit, ParamGridBuilder
 
 from pyspark.ml.feature import RegexTokenizer, Word2Vec, StopWordsRemover, StringIndexer
 from pyspark.ml import Pipeline
@@ -8,7 +9,7 @@ from core.log import logger
 from core.spark_utils import spark_session
 
 
-def create_pipeline(embedding_size=10, trees=10):
+def create_pipeline():
     regex_tokenizer = RegexTokenizer(
         gaps=False,
         pattern='\\w+',
@@ -22,7 +23,6 @@ def create_pipeline(embedding_size=10, trees=10):
     )
 
     word2vec = Word2Vec(
-        vectorSize=embedding_size,
         minCount=5,
         inputCol='abstract_sw_removed',
         outputCol='abstract_embedding'
@@ -33,7 +33,7 @@ def create_pipeline(embedding_size=10, trees=10):
         outputCol="indexed_category"
     )
 
-    rf = RandomForestClassifier(numTrees=trees)
+    rf = RandomForestClassifier()
 
     ovr = OneVsRest(
         labelCol='indexed_category',
@@ -42,24 +42,53 @@ def create_pipeline(embedding_size=10, trees=10):
         classifier=rf
     )
 
-    return Pipeline(stages=[regex_tokenizer, swr, word2vec, label_indexer, ovr])
+    param_grid = ParamGridBuilder()\
+        .addGrid(rf.numTrees, [100])\
+        .addGrid(word2vec.vectorSize, [50])\
+        .addGrid(rf.maxDepth, [10, 15])\
+        .build()
 
+    pipeline = Pipeline(stages=[regex_tokenizer, swr, word2vec, label_indexer, ovr])
+
+    evaluator = MulticlassClassificationEvaluator(
+        labelCol='indexed_category',
+        predictionCol='predicted_indexed_category',
+        metricName="accuracy"
+    )
+
+    tvs = TrainValidationSplit(
+        estimator=pipeline,
+        estimatorParamMaps=param_grid,
+        evaluator=evaluator,
+        trainRatio=0.8)
+
+    return tvs
+
+config = {
+    'spark.executor.memory': '6g'
+}
 
 if __name__ == '__main__':
-    with spark_session() as spark:
+    with spark_session(config) as spark:
 
         df = spark.read.json("/data/papers")\
             .select("abstract_distilled", "category")\
-            .withColumnRenamed("abstract_distilled", "abstract")
+            .withColumnRenamed("abstract_distilled", "abstract")\
+            .repartition(8)
 
         logger.info(f"Number of rows: {df.count()}")
 
-        (training, test) = df.randomSplit([0.7, 0.3])
+        (training, test) = df.randomSplit([0.8, 0.2])
 
         logger.info("Creating and training model.")
         pipeline = create_pipeline()
 
-        model = pipeline.fit(training)
+        model = pipeline.fit(training.repartition(8))
+
+        logger.info("Param map:")
+        for params, metric in zip(model.getEstimatorParamMaps(), model.validationMetrics):
+            param_map = {f"{k.parent.split('_')[0]}.{k.name}": v for k, v in params.items()}
+            logger.info(f"{param_map}: {metric}")
 
         logger.info("Preparing embeddings.")
         embeddings = model.transform(df).select("category", "abstract_embedding")
@@ -74,9 +103,9 @@ if __name__ == '__main__':
         )
 
         accuracy = evaluator.evaluate(model.transform(test))
-        logger.info(f"Test Error = {(1.0 - accuracy)}")
+        logger.info(f"Test accuracy = {accuracy}")
 
         logger.info("Saving model.")
-        pipeline.write().overwrite().save("/data/model/")
+        model.bestModel.write().overwrite().save("/data/model/")
 
 
