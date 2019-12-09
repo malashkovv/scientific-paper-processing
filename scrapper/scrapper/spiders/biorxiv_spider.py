@@ -1,4 +1,3 @@
-import re
 import logging
 from datetime import datetime
 from urllib.parse import urlparse
@@ -42,6 +41,7 @@ class BiorXivSpider(scrapy.Spider):
         item['posted'] = self.parse_posted(response)
         item['doi'] = self.parse_doi(response)
         item['category'] = response.meta['category']
+        item['pdf_link'] = self.parse_pdf_link(response)
         item['parsed'] = datetime.utcnow().isoformat()
         yield item
 
@@ -54,3 +54,6 @@ class BiorXivSpider(scrapy.Spider):
 
     def parse_abstract(self, response):
         return response.xpath('//div[has-class("abstract")]').get()
+
+    def parse_pdf_link(self, response):
+        return response.xpath('//a[has-class("article-dl-pdf-link")]/@href').get()

@@ -98,7 +98,10 @@ venv.bak/
 .ropeproject
 
 # mkdocs documentation
-/site
+/sitegit reset
 
 # mypy
 .mypy_cache/
+
+data/model
+data/embeddings

@@ -16,3 +16,4 @@ class BiorXivPage(scrapy.Item):
     path = scrapy.Field()
     posted = scrapy.Field()
     parsed = scrapy.Field()
+    pdf_link = scrapy.Field()
