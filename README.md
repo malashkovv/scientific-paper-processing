@@ -38,13 +38,17 @@ docker-compose run etl
 
 ## Spark
 
-You need to make sure that Spark cluster is running
+You need to make sure that Spark cluster is running with reporting database
 
 ```bash
-docker-compose up -d spark-master spark-worker1 spark-worker2
+docker-compose up -d spark-master spark-worker1 spark-worker2 reporting-db
 ```
 
-Then run 
+Then you have 2 ways to run:
+1. with live data from etl streaming
+1. with pre-collected data
+
+For live streaming run
 ```bash
 docker-compose run classifier-training
 ```
@@ -54,6 +58,18 @@ to train classification model.
 In order to get analytics data run 
 ```bash
 docker-compose run reporting
+```
+
+For pre-collected data run 
+```bash
+docker-compose run classifier-training-collected
+```
+to train classification model.
+
+
+In order to get analytics data run 
+```bash
+docker-compose run reporting-collected
 ```
 
 # Dashboard
