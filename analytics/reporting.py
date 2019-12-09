@@ -29,6 +29,9 @@ if __name__ == '__main__':
         categories = df.groupBy("category").agg(f.count("*").alias("cnt")).toPandas()
         categories.to_sql('categories_counts', con=sql_engine, if_exists='replace')
 
+        years = df.groupBy("posted_year").agg(f.count("*").alias("cnt")).toPandas()
+        years.to_sql('year_counts', con=sql_engine, if_exists='replace')
+
         embedding_sample = spark.read.parquet("/data/embeddings") \
             .sample(True, 0.05).toPandas()
 
