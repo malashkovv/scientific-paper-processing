@@ -8,12 +8,12 @@ services:
     extends:
       service: scrapper
     environment:
-      - BIORXIV_CATEGORY=genetics,neuroscience,bioinformatics
+      - BIORXIV_CATEGORIES=genetics,neuroscience,bioinformatics
   scrapper2:
     extends:
       service: scrapper
     environment:
-      - BIORXIV_CATEGORY=pharmacology-and-toxicology,cell-biology,cancer-biology
+      - BIORXIV_CATEGORIES=pharmacology-and-toxicology,cell-biology,cancer-biology
   zookeeper:
     image: bitnami/zookeeper:3
     ports:

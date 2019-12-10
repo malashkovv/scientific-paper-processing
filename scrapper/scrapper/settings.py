@@ -18,7 +18,8 @@ KAFKA_EXPORT_ENABLED = True
 KAFKA_BROKERS = os.environ.get("KAFKA_BROKERS", 'kafka1:9092,kafka2:9092').split(',')
 KAFKA_TOPIC = os.environ.get("KAFKA_TOPIC", 'science-papers')
 
-BIORXIV_CATEGORIES = 'pharmacology-and-toxicology,cell-biology,cancer-biology,genetics,neuroscience,bioinformatics'.split(',')
+BIORXIV_CATEGORIES = os.environ.get("BIORXIV_CATEGORIES",
+                                    'pharmacology-and-toxicology,cell-biology,cancer-biology,genetics,neuroscience,bioinformatics').split(',')
 BIORXIV_START_PAGE = int(os.environ.get('BIORXIV_START_PAGE', '0'))
 
 BIORXIV_END_PAGE = os.environ.get('BIORXIV_END_PAGE', None)
