@@ -50,7 +50,7 @@ services:
     volumes:
       - ./data:/data
   spark:
-    image: vmalashkov/apache-spark
+    image: vmalashkov/apache-spark:spark-3.1.2-h3.2-py-3.8.12
     volumes:
       - ./data:/data
   driver:
@@ -147,7 +147,7 @@ services:
       - 8082:8082
       - 7079:7079
   reporting-db:
-    image: postgres:11
+    image: postgres:12
     environment:
       - POSTGRES_USER=login
       - POSTGRES_PASSWORD=pwd
