@@ -111,6 +111,7 @@ services:
       - SPARK_MASTER_HOST=spark-master
     ports:
       - 7000:7000
+      - 4040:4040
     volumes:
       - ./analysis:/notebooks
       - ./data:/data
