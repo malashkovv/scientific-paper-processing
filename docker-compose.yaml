@@ -1,9 +1,9 @@
 version: '2'
 services:
-  semantic_scholar:
+  fake:
     build:
       context: ./
-      dockerfile: data_sources/semantic_scholar/Dockerfile
+      dockerfile: data_sources/fake/Dockerfile
   biorxiv:
     build:
       context: data_sources/biorxiv

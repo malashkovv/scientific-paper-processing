@@ -10,14 +10,22 @@ charset-normalizer==2.0.7
     # via requests
 click==8.0.3
     # via typer
+faker==9.8.2
+    # via -r requirements.in
 idna==3.3
     # via requests
 kafka-python==2.0.2
     # via -r requirements.in
 pydantic==1.8.2
     # via -r requirements.in
+python-dateutil==2.8.2
+    # via faker
 requests==2.26.0
     # via -r requirements.in
+six==1.16.0
+    # via python-dateutil
+text-unidecode==1.3
+    # via faker
 typer==0.4.0
     # via -r requirements.in
 typing-extensions==3.10.0.2

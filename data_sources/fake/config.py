@@ -7,8 +7,8 @@ class Settings(BaseSettings):
 
     api_call_interval = "2"
 
-    paper_ids_topic = "source.semantic-scholar.paper-ids"
-    paper_details_topic = "source.semantic-scholar.paper-details"
+    paper_ids_topic = "source.fake.paper-ids"
+    paper_details_topic = "source.fake.paper-details"
 
     @validator("kafka_urls")
     def split_kafka_urls(cls, v):
