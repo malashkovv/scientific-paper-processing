@@ -85,7 +85,7 @@ def tsne(embeddings, size=10, components=3):
 
 
 config = {
-    'spark.executor.memory': '6g'
+    'spark.executor.memory': '2g'
 }
 
 if __name__ == '__main__':
