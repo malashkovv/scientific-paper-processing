@@ -66,6 +66,8 @@ services:
       dockerfile: ./etl/Dockerfile
     environment:
       - SPARK_MASTER_HOST=spark-master
+    ports:
+      - 4041:4040
     volumes:
       - ./data:/data
   classifier-training:

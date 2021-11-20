@@ -1,6 +1,12 @@
 FROM vmalashkov/apache-spark:spark-3.1.2-h3.2-py-3.8.12
 
-COPY ./etl/main.py /usr/src/app/
-COPY ./core/ /usr/src/app/core/
+WORKDIR /usr/src/app/
 
-CMD ["python", "/usr/src/app/main.py"]
+COPY ./etl/requirements.txt requirements.txt
+
+RUN spark-pip install -r requirements.txt
+
+COPY ./etl/ ./
+COPY ./core/ ./core/
+
+CMD ["spark-python", "cli.py"]
