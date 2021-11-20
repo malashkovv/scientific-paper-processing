@@ -1,17 +1,21 @@
 version: '2'
 services:
-  scrapper:
+  fake:
     build:
-      context: ./scrapper
+      context: ./
+      dockerfile: data_sources/fake/Dockerfile
+  biorxiv:
+    build:
+      context: data_sources/biorxiv
       dockerfile: Dockerfile
-  scrapper1:
+  biorxiv1:
     extends:
-      service: scrapper
+      service: biorxiv
     environment:
       - BIORXIV_CATEGORIES=genetics,neuroscience,bioinformatics
-  scrapper2:
+  biorxiv2:
     extends:
-      service: scrapper
+      service: biorxiv
     environment:
       - BIORXIV_CATEGORIES=pharmacology-and-toxicology,cell-biology,cancer-biology
   zookeeper:
