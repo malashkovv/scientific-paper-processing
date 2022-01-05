@@ -10,12 +10,13 @@ config = {
 
 
 def process_stream(settings):
-    with spark_session(config) as spark:
+    master = f"spark://{settings.spark_master_host}:{settings.spark_master_port}"
+    with spark_session(app="etl", config=config, master=master) as spark:
         topic = spark \
             .readStream \
             .format("kafka") \
             .option("kafka.bootstrap.servers", ','.join(settings.kafka_urls)) \
-            .option("subscribe", settings.paper_details_topic) \
+            .option("subscribePattern", settings.paper_details_topic_pattern) \
             .option("startingOffsets", "earliest") \
             .load()
 
@@ -26,7 +27,9 @@ def process_stream(settings):
             .add("posted", DateType()) \
             .add("created_at", TimestampType()) \
 
-        df = topic.select(f.col("timestamp").alias("processed"), f.from_json(f.col("value").cast(StringType()), schema).alias("blob"))
+        df = topic.select(f.col("timestamp").alias("processed"),
+                          f.col("topic").alias("topic"),
+                          f.from_json(f.col("value").cast(StringType()), schema).alias("blob"))
 
         exploded_df = df \
             .withColumn("abstract", f.col("blob.abstract"))\
@@ -40,7 +43,7 @@ def process_stream(settings):
 
         write_stream = exploded_df.writeStream \
             .format("json") \
-            .partitionBy("posted_year", "posted_month") \
+            .partitionBy("topic", "posted_year", "posted_month") \
             .option("format", "append") \
             .option("path", "/data/papers") \
             .option("checkpointLocation", "/data/papers_check") \

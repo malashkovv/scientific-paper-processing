@@ -5,18 +5,14 @@ class Settings(BaseSettings):
 
     kafka_urls = "kafka1:9092,kafka2:9092"
 
-    api_call_interval = "2"
+    spark_master_host = "master"
+    spark_master_port = "7077"
 
-    paper_ids_topic = "source.fake.paper-ids"
-    paper_details_topic = "source.fake.paper-details"
+    paper_details_topic_pattern = "source.*.paper-details"
 
     @validator("kafka_urls")
     def split_kafka_urls(cls, v):
         return v.split(",")
-
-    @validator("api_call_interval")
-    def convert_api_call_interval(cls, v):
-        return float(v)
 
 
 settings = Settings()

@@ -7,11 +7,10 @@ from .log import logger
 
 
 @contextmanager
-def spark_session(config=None):
+def spark_session(app, master="local[*]", config=None):
     pre_spark = SparkSession.builder \
-        .appName('science-papers-ml') \
-        .master(f"spark://{os.environ.get('SPARK_MASTER_HOST', 'spark-master')}:"
-                f"{os.environ.get('SPARK_MASTER_PORT', '7077')}") \
+        .appName(app) \
+        .master(master) \
 
     if config is not None:
         for key, value in config.items():
