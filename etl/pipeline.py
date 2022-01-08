@@ -27,8 +27,7 @@ def process_stream(settings):
             .add("posted", DateType()) \
             .add("created_at", TimestampType()) \
 
-        df = topic.select(f.col("timestamp").alias("processed"),
-                          f.col("topic").alias("topic"),
+        df = topic.select(f.col("topic").alias("topic"),
                           f.from_json(f.col("value").cast(StringType()), schema).alias("blob"))
 
         exploded_df = df \
@@ -36,17 +35,17 @@ def process_stream(settings):
             .withColumn("category", f.col("blob.category"))\
             .withColumn("doi", f.col("blob.doi"))\
             .withColumn("posted", f.col("blob.posted"))\
-            .withColumn("created_at", f.col("blob.created_at"))\
-            .withColumn("posted_year", f.year("posted"))\
-            .withColumn("posted_month", f.month("posted"))\
+            .withColumn("created_at", f.col("blob.created_at")) \
+            .withColumn("created_date", f.to_date("blob.created_at").cast(DateType())) \
             .drop("blob")
 
         write_stream = exploded_df.writeStream \
             .format("json") \
-            .partitionBy("topic", "posted_year", "posted_month") \
+            .partitionBy("topic", "created_date") \
             .option("format", "append") \
-            .option("path", "/data/papers") \
-            .option("checkpointLocation", "/data/papers_check") \
+            .option("path", "s3a://dwh/streaming/pape_details") \
+            .option("checkpointLocation", "s3a://dwh/streaming_checkpoint/pape_details") \
+            .trigger(processingTime='20 seconds') \
             .outputMode("append") \
             .start()
 
