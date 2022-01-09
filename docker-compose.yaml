@@ -21,7 +21,7 @@ services:
   zookeeper:
     image: bitnami/zookeeper:3
     ports:
-      - '2181:2181'
+      - 2181:2181
     volumes:
       - zookeeper_data:/bitnami
     environment:
@@ -51,8 +51,6 @@ services:
       dockerfile: ./dashboard/Dockerfile
     ports:
       - 8050:8050
-    volumes:
-      - ./data:/data
   spark:
     image: vmalashkov/apache-spark:spark-3.1.2-h3.2-py-3.8.12
   driver:
@@ -86,8 +84,6 @@ services:
     environment:
       - MODE=STANDALONE
       - SPARK_MASTER_HOST=spark-master
-    volumes:
-      - ./data:/data
   reporting:
     build:
       context: ./
@@ -96,8 +92,6 @@ services:
     environment:
       - MODE=STANDALONE
       - SPARK_MASTER_HOST=spark-master
-    volumes:
-      - ./data:/data
   classifier-training-collected:
     build:
       context: ./
@@ -107,8 +101,6 @@ services:
       - MODE=STANDALONE
       - SPARK_MASTER_HOST=spark-master
       - PAPERS_PATH=/data/papers_collected
-    volumes:
-      - ./data:/data
   notebook:
     build:
       context: ./analysis
@@ -122,7 +114,6 @@ services:
       - 4040:4040
     volumes:
       - ./analysis:/notebooks
-      - ./data:/data
   spark-master:
     extends:
       service: spark
@@ -168,8 +159,8 @@ services:
   minio:
     image: minio/minio
     ports:
-      - '9000:9000'
-      - '9001:9001'
+      - 9000:9000
+      - 9001:9001
     volumes:
       - minio_data:/data
     environment:

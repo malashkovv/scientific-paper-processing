@@ -18,5 +18,4 @@ docker-compose exec kafka1 kafka-topics.sh \
     --topic source.fake.paper-details
 
 docker-compose up -d minio
-
 docker-compose up -d spark-master spark-worker1 spark-worker2
