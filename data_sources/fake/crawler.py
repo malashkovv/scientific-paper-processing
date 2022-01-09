@@ -24,7 +24,7 @@ def generate_record(doi):
         'doi': doi,
         'abstract': fake.paragraph(nb_sentences=15),
         'posted': fake.date_between(start_date='-50y').isoformat(),
-        'category': fake.word(),
+        'category': f"test_category_{fake.pyint(max_value=20)}",
         'created_at': dt.datetime.utcnow().isoformat()
     }
 

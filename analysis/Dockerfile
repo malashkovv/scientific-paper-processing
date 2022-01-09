@@ -1,5 +1,9 @@
-FROM vmalashkov/apache-spark
+FROM vmalashkov/apache-spark:spark-3.1.2-h3.2-py-3.8.12
 
-RUN pip install numpy chart-studio ipywidgets pandas sklearn
+COPY requirements.txt /usr/src/app/requirements.txt
 
-RUN wget https://jdbc.postgresql.org/download/postgresql-42.2.8.jar
+RUN spark-pip install -r /usr/src/app/requirements.txt
+
+COPY . /usr/src/project
+
+RUN wget https://jdbc.postgresql.org/download/postgresql-42.2.24.jar

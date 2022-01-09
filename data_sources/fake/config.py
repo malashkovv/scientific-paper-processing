@@ -5,7 +5,7 @@ class Settings(BaseSettings):
 
     kafka_urls = "kafka1:9092,kafka2:9092"
 
-    api_call_interval = "2"
+    api_call_interval = "0.2"
 
     paper_ids_topic = "source.fake.paper-ids"
     paper_details_topic = "source.fake.paper-details"

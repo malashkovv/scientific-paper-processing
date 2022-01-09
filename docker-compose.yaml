@@ -21,7 +21,7 @@ services:
   zookeeper:
     image: bitnami/zookeeper:3
     ports:
-      - '2181:2181'
+      - 2181:2181
     volumes:
       - zookeeper_data:/bitnami
     environment:
@@ -51,73 +51,69 @@ services:
       dockerfile: ./dashboard/Dockerfile
     ports:
       - 8050:8050
-    volumes:
-      - ./data:/data
   spark:
-    image: vmalashkov/apache-spark
-    volumes:
-      - ./data:/data
+    image: vmalashkov/apache-spark:spark-3.1.2-h3.2-py-3.8.12
   driver:
     extends:
       service: spark
+    environment:
+      - MODE=STANDALONE
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_CONF_DIR=/spark-conf
+    volumes:
+      - ./conf/:/spark-conf/
+      - ./pom.xml.template:/test/pom.xml.template
+      - ./jars:/spark-jars
   etl:
     build:
       context: ./
       dockerfile: ./etl/Dockerfile
     environment:
+      - MODE=STANDALONE
       - SPARK_MASTER_HOST=spark-master
+      - SPARK_CONF_DIR=/spark-conf
+    ports:
+      - 4041:4040
     volumes:
-      - ./data:/data
+      - ./conf/:/spark-conf/
   classifier-training:
     build:
       context: ./
       dockerfile: analytics/Dockerfile
     command: "python /usr/src/app/classifier_training.py"
     environment:
+      - MODE=STANDALONE
       - SPARK_MASTER_HOST=spark-master
-    volumes:
-      - ./data:/data
   reporting:
     build:
       context: ./
       dockerfile: analytics/Dockerfile
     command: "python /usr/src/app/reporting.py"
     environment:
+      - MODE=STANDALONE
       - SPARK_MASTER_HOST=spark-master
-    volumes:
-      - ./data:/data
   classifier-training-collected:
     build:
       context: ./
       dockerfile: analytics/Dockerfile
     command: "python /usr/src/app/classifier_training.py"
     environment:
+      - MODE=STANDALONE
       - SPARK_MASTER_HOST=spark-master
       - PAPERS_PATH=/data/papers_collected
-    volumes:
-      - ./data:/data
-  reporting-collected:
-    build:
-      context: ./
-      dockerfile: analytics/Dockerfile
-    command: "python /usr/src/app/reporting.py"
-    environment:
-      - SPARK_MASTER_HOST=spark-master
-      - PAPERS_PATH=/data/papers_collected
-    volumes:
-      - ./data:/data
   notebook:
     build:
       context: ./analysis
       dockerfile: Dockerfile
     command: spark-jupyter
     environment:
+      - MODE=STANDALONE
       - SPARK_MASTER_HOST=spark-master
     ports:
       - 7000:7000
+      - 4040:4040
     volumes:
       - ./analysis:/notebooks
-      - ./data:/data
   spark-master:
     extends:
       service: spark
@@ -151,7 +147,7 @@ services:
       - 8082:8082
       - 7079:7079
   reporting-db:
-    image: postgres:11
+    image: postgres:12
     environment:
       - POSTGRES_USER=login
       - POSTGRES_PASSWORD=pwd
@@ -160,6 +156,17 @@ services:
       - 5432:5432
     volumes:
       - reporting_data:/var/lib/postgresql/data
+  minio:
+    image: minio/minio
+    ports:
+      - 9000:9000
+      - 9001:9001
+    volumes:
+      - minio_data:/data
+    environment:
+      MINIO_ACCESS_KEY: minio_access_key
+      MINIO_SECRET_KEY: minio_secret_key
+    command: server /data --console-address ":9001"
 volumes:
   reporting_data:
     driver: local
@@ -168,4 +175,6 @@ volumes:
   kafka1_data:
     driver: local
   kafka2_data:
+    driver: local
+  minio_data:
     driver: local
