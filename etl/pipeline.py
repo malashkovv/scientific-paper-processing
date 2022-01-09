@@ -1,5 +1,4 @@
-from pyspark.sql import functions as f
-from pyspark.sql.types import StructType, StringType, DateType, TimestampType
+from pyspark.sql import functions as f, types as t
 
 from core.spark_utils import spark_session
 
@@ -20,31 +19,35 @@ def process_stream(settings):
             .option("startingOffsets", "earliest") \
             .load()
 
-        schema = StructType() \
-            .add("abstract", StringType()) \
-            .add("category", StringType()) \
-            .add("doi", StringType()) \
-            .add("posted", DateType()) \
-            .add("created_at", TimestampType()) \
+        schema = t.StructType() \
+            .add("title", t.StringType(), True) \
+            .add("abstract", t.StringType(), True) \
+            .add("category", t.StringType(), True) \
+            .add("doi", t.StringType(), True) \
+            .add("posted", t.DateType()) \
+            .add("created_at", t.TimestampType()) \
+            .add("authors", t.ArrayType(t.StringType()), True)
 
         df = topic.select(f.col("topic").alias("topic"),
-                          f.from_json(f.col("value").cast(StringType()), schema).alias("blob"))
+                          f.from_json(f.col("value").cast(t.StringType()), schema).alias("blob"))
 
         exploded_df = df \
+            .withColumn("title", f.col("blob.title")) \
             .withColumn("abstract", f.col("blob.abstract"))\
             .withColumn("category", f.col("blob.category"))\
             .withColumn("doi", f.col("blob.doi"))\
             .withColumn("posted", f.col("blob.posted"))\
             .withColumn("created_at", f.col("blob.created_at")) \
-            .withColumn("created_date", f.to_date("blob.created_at").cast(DateType())) \
+            .withColumn("authors", f.col("blob.authors")) \
+            .withColumn("created_date", f.to_date("blob.created_at").cast(t.DateType())) \
             .drop("blob")
 
         write_stream = exploded_df.writeStream \
             .format("json") \
             .partitionBy("topic", "created_date") \
             .option("format", "append") \
-            .option("path", "s3a://dwh/streaming/pape_details") \
-            .option("checkpointLocation", "s3a://dwh/streaming_checkpoint/pape_details") \
+            .option("path", "s3a://dwh/streaming/paper_details") \
+            .option("checkpointLocation", "s3a://dwh/streaming_checkpoint/paper_details") \
             .trigger(processingTime='20 seconds') \
             .outputMode("append") \
             .start()

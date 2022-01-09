@@ -4,20 +4,12 @@ services:
     build:
       context: ./
       dockerfile: data_sources/fake/Dockerfile
-  biorxiv:
+  dblp:
     build:
-      context: data_sources/biorxiv
-      dockerfile: Dockerfile
-  biorxiv1:
-    extends:
-      service: biorxiv
-    environment:
-      - BIORXIV_CATEGORIES=genetics,neuroscience,bioinformatics
-  biorxiv2:
-    extends:
-      service: biorxiv
-    environment:
-      - BIORXIV_CATEGORIES=pharmacology-and-toxicology,cell-biology,cancer-biology
+      context: ./
+      dockerfile: data_sources/dblp/Dockerfile
+    volumes:
+      - ./data/:/data/:ro
   zookeeper:
     image: bitnami/zookeeper:3
     ports:
@@ -57,13 +49,10 @@ services:
     extends:
       service: spark
     environment:
-      - MODE=STANDALONE
-      - SPARK_MASTER_HOST=spark-master
+      - MODE=LOCAL
       - SPARK_CONF_DIR=/spark-conf
     volumes:
       - ./conf/:/spark-conf/
-      - ./pom.xml.template:/test/pom.xml.template
-      - ./jars:/spark-jars
   etl:
     build:
       context: ./
@@ -167,6 +156,13 @@ services:
       MINIO_ACCESS_KEY: minio_access_key
       MINIO_SECRET_KEY: minio_secret_key
     command: server /data --console-address ":9001"
+  minio-mc:
+    image: minio/mc
+    environment:
+      MINIO_ACCESS_KEY: minio_access_key
+      MINIO_SECRET_KEY: minio_secret_key
+    entrypoint: ['']
+    command: ['echo', 'nothing']
 volumes:
   reporting_data:
     driver: local

@@ -22,6 +22,7 @@ def generate_doi():
 def generate_record(doi):
     return {
         'doi': doi,
+        'title': fake.sentence(nb_words=10),
         'abstract': fake.paragraph(nb_sentences=15),
         'posted': fake.date_between(start_date='-50y').isoformat(),
         'category': f"test_category_{fake.pyint(max_value=20)}",
