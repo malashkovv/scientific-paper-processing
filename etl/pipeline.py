@@ -4,7 +4,10 @@ from core.spark_utils import spark_session
 
 
 config = {
-    'spark.jars.packages': 'org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.2'
+    'spark.jars.packages': 'org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.2',
+    'spark.executor.memory': '1g',
+    'spark.executor.instances': '4',
+    'spark.executor.cores': '2'
 }
 
 
@@ -21,9 +24,11 @@ def process_stream(settings):
 
         schema = t.StructType() \
             .add("title", t.StringType(), True) \
+            .add("source_id", t.StringType(), True) \
             .add("abstract", t.StringType(), True) \
             .add("category", t.StringType(), True) \
             .add("doi", t.StringType(), True) \
+            .add("venue", t.StringType(), True) \
             .add("posted", t.DateType()) \
             .add("created_at", t.TimestampType()) \
             .add("authors", t.ArrayType(t.StringType()), True)
@@ -33,9 +38,11 @@ def process_stream(settings):
 
         exploded_df = df \
             .withColumn("title", f.col("blob.title")) \
+            .withColumn("source_id", f.col("blob.source_id")) \
             .withColumn("abstract", f.col("blob.abstract"))\
             .withColumn("category", f.col("blob.category"))\
             .withColumn("doi", f.col("blob.doi"))\
+            .withColumn("venue", f.col("blob.venue"))\
             .withColumn("posted", f.col("blob.posted"))\
             .withColumn("created_at", f.col("blob.created_at")) \
             .withColumn("authors", f.col("blob.authors")) \
