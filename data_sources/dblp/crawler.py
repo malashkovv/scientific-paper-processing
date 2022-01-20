@@ -15,7 +15,7 @@ def generate_record(row):
         'source_id': row.get('id'),
         'abstract': row.get('abstract'),
         'authors': row.get('authors'),
-        'venue': row.get('authors'),
+        'venue': row.get('venue'),
         'title': row.get('title'),
         'posted': dt.date(int(row['year']), 1, 1).isoformat(),
         'created_at': dt.datetime.utcnow().isoformat()

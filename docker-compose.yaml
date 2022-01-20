@@ -65,14 +65,16 @@ services:
       - 4041:4040
     volumes:
       - ./conf/:/spark-conf/
-  classifier-training:
+  clustering:
     build:
       context: ./
       dockerfile: analytics/Dockerfile
-    command: "python /usr/src/app/classifier_training.py"
     environment:
-      - MODE=STANDALONE
-      - SPARK_MASTER_HOST=spark-master
+#      - MODE=STANDALONE
+#      - SPARK_MASTER_HOST=spark-master
+      - SPARK_CONF_DIR=/spark-conf
+    volumes:
+      - ./conf/:/spark-conf/
   reporting:
     build:
       context: ./
@@ -81,15 +83,6 @@ services:
     environment:
       - MODE=STANDALONE
       - SPARK_MASTER_HOST=spark-master
-  classifier-training-collected:
-    build:
-      context: ./
-      dockerfile: analytics/Dockerfile
-    command: "python /usr/src/app/classifier_training.py"
-    environment:
-      - MODE=STANDALONE
-      - SPARK_MASTER_HOST=spark-master
-      - PAPERS_PATH=/data/papers_collected
   notebook:
     build:
       context: ./analysis

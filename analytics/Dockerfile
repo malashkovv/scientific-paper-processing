@@ -7,4 +7,6 @@ RUN spark-pip install -r /usr/src/app/requirements.txt
 COPY ./analytics/ /usr/src/app/
 COPY ./core/ /usr/src/app/core/
 
-CMD ["spark-python", "/usr/src/app/classifier_training.py"]
+WORKDIR /usr/src/app/
+
+CMD ["spark-python", "cli.py"]
