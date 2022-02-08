@@ -52,7 +52,7 @@ services:
       - MODE=LOCAL
       - SPARK_CONF_DIR=/spark-conf
     volumes:
-      - ./conf/:/spark-conf/
+      - ./conf/spark/:/spark-conf/
   etl:
     build:
       context: ./
@@ -64,7 +64,7 @@ services:
     ports:
       - 4041:4040
     volumes:
-      - ./conf/:/spark-conf/
+      - ./conf/spark/:/spark-conf/
   clustering:
     build:
       context: ./
@@ -74,7 +74,7 @@ services:
 #      - SPARK_MASTER_HOST=spark-master
       - SPARK_CONF_DIR=/spark-conf
     volumes:
-      - ./conf/:/spark-conf/
+      - ./conf/spark/:/spark-conf/
   reporting:
     build:
       context: ./
@@ -156,6 +156,26 @@ services:
       MINIO_SECRET_KEY: minio_secret_key
     entrypoint: ['']
     command: ['echo', 'nothing']
+  hive-metastore:
+    image: vmalashkov/apache-hive-metastore:3.0.0-h3.2.0
+    ports:
+      - 9083:9083
+    command: metastore
+    volumes:
+      - ./conf/hive-metastore/:/opt/apache-hive-metastore-3.0.0-bin/conf/:ro
+    depends_on:
+      - mariadb
+  mariadb:
+    image: mariadb:latest
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+      MYSQL_DATABASE: metastore_db
+    volumes:
+      - mariadb_data:/var/lib/mysql
 volumes:
   reporting_data:
     driver: local
@@ -166,4 +186,6 @@ volumes:
   kafka2_data:
     driver: local
   minio_data:
+    driver: local
+  mariadb_data:
     driver: local

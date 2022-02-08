@@ -35,3 +35,4 @@ docker-compose run minio-mc /bin/bash -c $minio_init
 docker-compose up -d spark-master spark-worker1 spark-worker2
 docker-compose up -d reporting-db
 
+docker-compose up -d mariadb hive-metastore
