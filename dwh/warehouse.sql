@@ -1,6 +1,6 @@
 CREATE DATABASE warehouse;
 
-CREATE TABLE warehouse.paper_details (
+CREATE OR REPLACE TABLE warehouse.paper_details (
   title STRING,
   source_id STRING,
   abstract STRING,
@@ -14,5 +14,6 @@ CREATE TABLE warehouse.paper_details (
   topic STRING
 )
 USING DELTA
--- PARTITIONED BY (topic, created_date)
-LOCATION 's3a://dwh/data/papers_details';
+PARTITIONED BY (created_date, topic)
+LOCATION 's3a://dwh/data/papers_details'
+;

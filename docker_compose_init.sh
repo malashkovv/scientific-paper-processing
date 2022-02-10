@@ -40,3 +40,5 @@ docker-compose up -d mariadb
 sleep 3s
 docker-compose run hive-metastore init
 docker-compose up -d hive-metastore
+
+docker-compose run driver spark-sql -f /dwh/warehouse.sql
