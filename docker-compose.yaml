@@ -53,6 +53,7 @@ services:
       - SPARK_CONF_DIR=/spark-conf
     volumes:
       - ./conf/spark/:/spark-conf/
+      - ./dwh/:/dwh/
   etl:
     build:
       context: ./
