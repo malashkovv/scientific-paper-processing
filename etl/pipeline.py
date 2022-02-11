@@ -33,30 +33,30 @@ def process_stream(settings):
             .add("created_at", t.TimestampType()) \
             .add("authors", t.ArrayType(t.StringType()), True)
 
-        df = topic.select(f.col("topic").alias("topic"),
+        df = topic.select(f.col("topic"),
                           f.from_json(f.col("value").cast(t.StringType()), schema).alias("blob"))
 
-        exploded_df = df \
-            .withColumn("title", f.col("blob.title")) \
-            .withColumn("source_id", f.col("blob.source_id")) \
-            .withColumn("abstract", f.col("blob.abstract"))\
-            .withColumn("category", f.col("blob.category"))\
-            .withColumn("doi", f.col("blob.doi"))\
-            .withColumn("venue", f.col("blob.venue"))\
-            .withColumn("posted", f.col("blob.posted"))\
-            .withColumn("created_at", f.col("blob.created_at")) \
-            .withColumn("authors", f.col("blob.authors")) \
-            .withColumn("created_date", f.to_date("blob.created_at").cast(t.DateType())) \
-            .drop("blob")
+        exploded_df = df.select(
+            f.col("blob.title").alias("title",),
+            f.col("blob.source_id").alias("source_id"),
+            f.col("blob.abstract").alias("abstract"),
+            f.col("blob.category").alias("category"),
+            f.col("blob.doi").alias("doi"),
+            f.col("blob.venue").alias("venue"),
+            f.col("blob.posted").alias("posted"),
+            f.col("blob.created_at").alias("created_at"),
+            f.col("blob.authors").alias("authors"),
+            f.col("topic"),
+            f.to_date("blob.created_at").cast(t.DateType()).alias("created_date")
+        )
 
         write_stream = exploded_df.writeStream \
-            .format("json") \
+            .format("delta") \
             .partitionBy("topic", "created_date") \
-            .option("format", "append") \
-            .option("path", "s3a://dwh/streaming/paper_details") \
-            .option("checkpointLocation", "s3a://dwh/streaming_checkpoint/paper_details") \
             .trigger(processingTime='20 seconds') \
             .outputMode("append") \
-            .start()
+            .option("path", "s3a://dwh/data/paper_details") \
+            .option("checkpointLocation", "s3a://dwh/streaming_checkpoint/paper_details") \
+            .toTable("warehouse.paper_details")
 
         write_stream.awaitTermination()
