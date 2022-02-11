@@ -10,6 +10,7 @@ from .log import logger
 def spark_session(app, master="local[*]", config=None):
     pre_spark = SparkSession.builder \
         .appName(app) \
+        .enableHiveSupport() \
         .master(master) \
 
     if config is not None:
